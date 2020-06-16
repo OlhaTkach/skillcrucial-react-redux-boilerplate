@@ -32,6 +32,12 @@ const { readFile, writeFile } = require("fs").promises;
 
 middleware.forEach((it) => server.use(it))
 
+server.use((req, res, next) => {
+  res.set('x-skillcrucial-user', 'd71e4430-5383-4865-9f7c-5edfdbccb2da')  
+  res.set('Access-Control-Expose-Headers', 'X-SKILLCRUCIAL-USER')
+  next()
+})
+
 server.get('/api/v1/users', (req, res) => {
     readFile(`${__dirname}/users.json`, { encoding: "utf8" })  
       .then(text => {  
@@ -73,26 +79,33 @@ server.patch('/api/v1/users/:userId', (req, res) => {
   readFile(`${__dirname}/users.json`, { encoding: "utf8" })  
   .then(text => {  
     const users = JSON.parse(text)
-    users.map((item) => item.id)
-    const userToChange = users.filter((item) => req.params.userId === item.id )
+    const userToChange = users.filter( item => item.id === parseInt(req.params.userId, 10))
+    if (userToChange.length === 0) {
+      res.json({status: 'error', message: `No user with id ${req.params.userId}` }) 
+    }
+    const userToChangeIndex = users.indexOf(userToChange[0])
     const changedUser = { ...userToChange[0], ...req.body}
-    users.push(changedUser)
+    users[userToChangeIndex] = changedUser
     const usersString = JSON.stringify(users)
     writeFile(`${__dirname}/users.json`, usersString, { encoding: "utf8" })
-    res.json({ status: 'success', id: req.params.userId})
-})
+    res.json({ status: 'success', id: userToChange[0].id })
+  })
 })
 
 
-server.delete ('/api/v1/users', (req, res) => {
+server.delete('/api/v1/users/:userId', (req, res) => {
   readFile(`${__dirname}/users.json`, { encoding: "utf8" })  
   .then(text => {  
-    const users = JSON.parse(text)    
+    const users = JSON.parse(text)
+    const userToChange = users.filter( item => item.id === parseInt(req.params.userId, 10))
+    if (userToChange.length === 0) {
+      res.json({status: 'error', message: `No user with id ${req.params.userId}` }) 
+    }
+    const userToChangeIndex = users.indexOf(userToChange[0])
+    users.splice(userToChangeIndex, 1)
     const usersString = JSON.stringify(users)
     writeFile(`${__dirname}/users.json`, usersString, { encoding: "utf8" })
     res.json({ status: 'success', id: req.params.userId })
-
-
   })
 })
 
