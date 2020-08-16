@@ -9,10 +9,24 @@ import axios from 'axios'
 
 
 import cookieParser from 'cookie-parser'
-import Root from '../client/config/root'
-
+import config from './config'
 import Html from '../client/html'
 
+const Root = () => ''
+
+try {
+  // eslint-disable-next-line import/no-unresolved
+  // ;(async () => {
+  //   const items = await import('../dist/assets/js/root.bundle')
+  //   console.log(JSON.stringify(items))
+
+  //   Root = (props) => <items.Root {...props} />
+  //   console.log(JSON.stringify(items.Root))
+  // })()
+  console.log(Root)
+} catch (ex) {
+  console.log(' run yarn build:prod to enable ssr')
+}
 
 let connections = []
 
@@ -122,16 +136,6 @@ server.use('/api/', (req, res) => {
   res.end()
 })
 
-const echo = sockjs.createServer()
-echo.on('connection', (conn) => {
-  connections.push(conn)
-  conn.on('data', async () => {})
-
-  conn.on('close', () => {
-    connections = connections.filter((c) => c.readyState !== 3)
-  })
-})
-
 const [htmlStart, htmlEnd] = Html({
   body: 'separator',
   title: 'Skillcrucial - Become an IT HERO'
@@ -164,8 +168,17 @@ server.get('/*', (req, res) => {
 
 const app = server.listen(port)
 
-echo.installHandlers(app, { prefix: '/ws' })
+if (config.isSocketsEnabled) {
+  const echo = sockjs.createServer()
+  echo.on('connection', (conn) => {
+    connections.push(conn)
+    conn.on('data', async () => {})
 
-// eslint-disable-next-line no-console
+    conn.on('close', () => {
+      connections = connections.filter((c) => c.readyState !== 3)
+    })
+  })
+  echo.installHandlers(app, { prefix: '/ws' })
+}
 console.log(`Serving at http://localhost:${port}`)
 

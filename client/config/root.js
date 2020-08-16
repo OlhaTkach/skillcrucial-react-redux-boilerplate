@@ -1,4 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
+/* eslint-disable import/no-duplicates */
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Provider } from 'react-redux'
@@ -8,10 +9,12 @@ import { Switch, Route, Redirect, StaticRouter } from 'react-router-dom'
 import store, { history } from '../redux'
 
 import Home from '../components/home'
+import Username from '../components/username'
 import DummyView from '../components/dummy-view'
 import NotFound from '../components/404'
 
 import Startup from './startup'
+import Repositoryname from '../components/respositoryname'
 
 const OnlyAnonymousRoute = ({ component: Component, ...rest }) => {
   const func = (props) =>
@@ -72,8 +75,9 @@ const Root = (props) => {
       <ScillcrucialRouter history={history} location={props.location} context={props.context}>
         <Startup>
           <Switch>
-            <Route exact path="/" component={() => <DummyView />} />
-            <Route exact path="/dashboard" component={() => <Home />} />
+            <Route exact path="/" component={() => <Home />} />
+            <Route exact path="/:userName" component={() => <Username />} /> 
+            <Route exact path="/:userName/:repositoryName" component={() => <Repositoryname />} />
             <PrivateRoute exact path="/hidden-route" component={() => <DummyView />} />
             <Route component={() => <NotFound />} />
           </Switch>
@@ -84,3 +88,5 @@ const Root = (props) => {
 }
 
 export default Root
+
+
